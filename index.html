@@ -976,5 +976,16 @@ onSemesterInput();
 updateSubjectTotals();
 calculate();
 </script>
+<script>
+  // 우클릭 방지
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+
+  // 드래그 선택 방지 (선택 복사 막기)
+  document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+  });
+</script>
 </body>
 </html>
