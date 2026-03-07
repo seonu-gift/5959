@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내신 등급 환산 계산기 | 5등급제 ↔ 9등급제</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #edf7f5;
+    --surface: #ffffff;
+    --surface2: #f0faf8;
+    --border: #b2ddd6;
+    --accent: #0e9f8e;
+    --accent2: #06b6a0;
+    --success: #16a34a;
+    --warn: #d97706;
+    --danger: #dc2626;
+    --text: #1a3a35;
+    --text2: #4a7a72;
+    --text3: #7aada6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 배경 그리드 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(14,159,142,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,159,142,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(14,159,142,0.1);
+    border: 1px solid rgba(14,159,142,0.3);
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .brand {
+    display: inline-block;
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(18px, 3.5vw, 26px);
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0e9f8e, #06b6a0);
+    padding: 10px 28px;
+    border-radius: 50px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(14,159,142,0.3);
+  }
+
+  .brand span {
+    font-size: 0.7em;
+    opacity: 0.85;
+    vertical-align: middle;
+  }
+
+  h1 {
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 14px;
+  }
+
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--text2);
+    font-size: 17px;
+    line-height: 1.7;
+  }
+
+  /* 카드 */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: rgba(14,159,142,0.4); }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    font-family: 'Noto Serif KR', 'Georgia', serif;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 14px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2));
+    border-radius: 2px;
+  }
+
+  /* 입력 그리드 */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 520px) {
+    .input-grid { grid-template-columns: 1fr; }
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text2);
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+
+  .input-wrapper input::-webkit-outer-spin-button,
+  .input-wrapper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .input-wrapper input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(14,159,142,0.15);
+  }
+
+  .input-hint {
+    font-size: 13px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* 탭 스위처 */
+  .tab-switcher {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 22px;
+    gap: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: var(--text3);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(14,159,142,0.15);
+  }
+
+  .tab-btn.active span { color: var(--accent2); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* 학기별 과목 수 입력 */
+  .semester-section { margin-bottom: 18px; }
+
+  .semester-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 10px;
+  }
+
+  .semester-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .semester-row {
+    display: grid;
+    grid-template-columns: 72px 1fr 28px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .semester-row-label {
+    font-size: 13px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .semester-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    outline: none;
+    width: 100%;
+    text-align: center;
+    -moz-appearance: textfield;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .semester-row input::-webkit-outer-spin-button,
+  .semester-row input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .semester-row input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(14,159,142,0.12);
+  }
+
+  .semester-row .unit {
+    font-size: 14px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .add-semester-btn {
+    background: none;
+    border: 1px dashed rgba(14,159,142,0.25);
+    border-radius: 8px;
+    padding: 7px;
+    width: 100%;
+    color: var(--text3);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .add-semester-btn:hover {
+    border-color: rgba(14,159,142,0.5);
+    color: var(--accent2);
+    background: rgba(14,159,142,0.04);
+  }
+
+  .semester-totals {
+    display: flex;
+    gap: 16px;
+    padding: 11px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .semester-totals span { color: var(--text3); }
+  .semester-totals b {
+    font-family: 'Space Mono', monospace;
+    color: var(--accent2);
+    font-size: 16px;
+  }
+
+  /* 결과 섹션 */
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 520px) {
+    .result-grid { grid-template-columns: 1fr; }
+  }
+
+  .result-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s ease;
+  }
+
+  .result-item.highlight {
+    border-color: rgba(14,159,142,0.4);
+    background: rgba(14,159,142,0.06);
+  }
+
+  .result-label {
+    font-size: 14px;
+    color: var(--text3);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .result-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    transition: all 0.3s ease;
+  }
+
+  .result-value.blue { color: var(--accent); }
+  .result-value.cyan { color: var(--accent2); }
+  .result-value.green { color: var(--success); }
+  .result-value.amber { color: var(--warn); }
+
+  .result-unit {
+    font-size: 15px;
+    color: var(--text3);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  /* 시나리오 섹션 */
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 520px) {
+    .scenario-grid { grid-template-columns: 1fr; }
+  }
+
+  .scenario-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .scenario-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .scenario-item.grade1::before {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .scenario-item.grade2::before {
+    background: linear-gradient(90deg, var(--success), var(--accent2));
+  }
+
+  .scenario-tag {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 10px;
+  }
+
+  .scenario-tag.grade1 { color: var(--accent); }
+  .scenario-tag.grade2 { color: var(--success); }
+
+  .scenario-label {
+    font-size: 14px;
+    color: var(--text3);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .scenario-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .scenario-value.grade1 { color: var(--accent); }
+  .scenario-value.grade2 { color: var(--success); }
+
+  /* 판정 배너 */
+  .verdict-banner {
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    border: 1px solid;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .verdict-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    border-radius: inherit;
+  }
+
+  .verdict-banner.possible {
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.06);
+  }
+
+  .verdict-banner.possible::before {
+    background: var(--success);
+  }
+
+  .verdict-banner.impossible {
+    border-color: rgba(239,68,68,0.4);
+    background: rgba(239,68,68,0.06);
+  }
+
+  .verdict-banner.impossible::before {
+    background: var(--danger);
+  }
+
+  .verdict-banner.warning {
+    border-color: rgba(245,158,11,0.4);
+    background: rgba(245,158,11,0.06);
+  }
+
+  .verdict-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .verdict-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .verdict-banner.possible .verdict-title { color: var(--success); }
+  .verdict-banner.impossible .verdict-title { color: var(--danger); }
+  .verdict-banner.warning .verdict-title { color: var(--warn); }
+
+  .verdict-text {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  .verdict-text strong {
+    font-family: 'Space Mono', monospace;
+    font-size: 17px;
+  }
+
+  .verdict-banner.possible .verdict-text strong { color: var(--success); }
+  .verdict-banner.impossible .verdict-text strong { color: var(--accent2); }
+
+  /* 환산표 토글 */
+  .toggle-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 20px;
+    color: var(--text2);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .toggle-btn:hover {
+    border-color: rgba(14,159,142,0.4);
+    color: var(--text);
+    background: rgba(14,159,142,0.04);
+  }
+
+  .toggle-arrow {
+    transition: transform 0.3s ease;
+    font-size: 14px;
+  }
+
+  .toggle-arrow.open { transform: rotate(180deg); }
+
+  .table-wrapper {
+    display: none;
+    overflow: hidden;
+  }
+
+  .table-wrapper.open { display: block; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+
+  th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: center;
+    color: var(--text2);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 16px;
+    text-align: center;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    color: var(--text2);
+    transition: background 0.15s;
+  }
+
+  tr:hover td { background: rgba(14,159,142,0.04); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+
+  td.highlight-row {
+    color: var(--accent2);
+    font-weight: 700;
+  }
+
+  /* 푸터 */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    color: var(--text3);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  /* 애니메이션 */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .verdict-banner {
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+
+  @keyframes countUp {
+    from { opacity: 0.4; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .result-value, .scenario-value {
+    animation: countUp 0.25s ease;
+  }
+
+  .pulse {
+    animation: countUp 0.25s ease;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand"><span>✦</span> 진정성입시연구소 <span>✦</span></div>
+    <h1>내신 등급 <span>환산 계산기</span></h1>
+    <p class="subtitle">5등급제 ↔ 9등급제 자동 환산 · 목표 등급 달성 시뮬레이션</p>
+  </div>
+
+  <!-- 입력 -->
+  <div class="card">
+    <div class="card-title">입력 항목</div>
+
+    <!-- 공통: 내신 평균 + 목표 -->
+    <div class="input-grid" style="margin-bottom:22px;">
+      <div class="input-group">
+        <label>현재 5등급제 내신 평균</label>
+        <div class="input-wrapper">
+          <input type="number" id="currentGrade" value="2.1" min="1" max="5" step="0.01">
+        </div>
+        <span class="input-hint">1.00 ~ 5.00</span>
+      </div>
+      <div class="input-group">
+        <label>목표 5등급제 내신 평균</label>
+        <div class="input-wrapper">
+          <input type="number" id="targetGrade" value="1.5" min="1" max="5" step="0.01">
+        </div>
+        <span class="input-hint">1.00 ~ 5.00</span>
+      </div>
+    </div>
+
+    <!-- 탭 스위처 -->
+    <div class="tab-switcher">
+      <button class="tab-btn active" onclick="switchTab('semester')" id="tab-semester">
+        <span>📅</span> 학기 수로 입력
+      </button>
+      <button class="tab-btn" onclick="switchTab('subject')" id="tab-subject">
+        <span>📚</span> 과목 수로 입력 (정밀)
+      </button>
+    </div>
+
+    <!-- 탭 A: 학기 수 입력 -->
+    <div class="tab-panel active" id="panel-semester">
+      <div class="input-grid">
+        <div class="input-group">
+          <label>이수한 학기 수</label>
+          <div class="input-wrapper">
+            <input type="number" id="completedSemesters" value="2" min="1" step="1" oninput="onSemesterInput()">
+          </div>
+          <span class="input-hint">완료된 학기 수</span>
+        </div>
+        <div class="input-group">
+          <label>남은 학기 수</label>
+          <div class="input-wrapper">
+            <input type="number" id="remainingSemesters" value="3" min="0" step="1" oninput="onSemesterInput()">
+          </div>
+          <span class="input-hint">앞으로 남은 학기 수</span>
+        </div>
+        <div class="input-group">
+          <label>학기당 과목 수 (동일한 경우)</label>
+          <div class="input-wrapper">
+            <input type="number" id="subjectsPerSemester" value="7" min="1" step="1" oninput="onSemesterInput()">
+          </div>
+          <span class="input-hint">모든 학기가 같을 때</span>
+        </div>
+      </div>
+      <div class="semester-totals" style="margin-top:14px;">
+        <span>이수 과목 합계 <b id="semComp">14</b>과목</span>
+        <span>남은 과목 합계 <b id="semRem">21</b>과목</span>
+      </div>
+    </div>
+
+    <!-- 탭 B: 학기별 과목 수 직접 입력 -->
+    <div class="tab-panel" id="panel-subject">
+      <div class="semester-section">
+        <div class="semester-label">이수한 학기</div>
+        <div class="semester-rows" id="completedRows">
+          <div class="semester-row"><span class="semester-row-label">학기 1</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+          <div class="semester-row"><span class="semester-row-label">학기 2</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+        </div>
+        <button class="add-semester-btn" onclick="addSemesterRow('completed')">+ 이수 학기 추가</button>
+      </div>
+      <div class="semester-section">
+        <div class="semester-label">남은 학기</div>
+        <div class="semester-rows" id="remainingRows">
+          <div class="semester-row"><span class="semester-row-label">학기 1</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+          <div class="semester-row"><span class="semester-row-label">학기 2</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+          <div class="semester-row"><span class="semester-row-label">학기 3</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+        </div>
+        <button class="add-semester-btn" onclick="addSemesterRow('remaining')">+ 남은 학기 추가</button>
+      </div>
+      <div class="semester-totals">
+        <span>이수 과목 합계 <b id="subjComp">14</b>과목</span>
+        <span>남은 과목 합계 <b id="subjRem">21</b>과목</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 결과 -->
+  <div class="card">
+    <div class="card-title">계산 결과</div>
+    <div class="result-grid">
+      <div class="result-item highlight">
+        <div class="result-label">현재 5등급 → 9등급 환산</div>
+        <div class="result-value blue" id="current9Grade">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">목표 5등급 → 9등급 환산</div>
+        <div class="result-value cyan" id="target9Grade">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">남은 과목 수</div>
+        <div class="result-value" id="remainCount">—<span class="result-unit">과목</span></div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">남은 과목 필요 평균 (5등급)</div>
+        <div class="result-value amber" id="requiredAvg">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 판정 -->
+  <div class="verdict-banner warning" id="verdictBanner">
+    <span class="verdict-icon" id="verdictIcon">⏳</span>
+    <div class="verdict-title" id="verdictTitle">계산 중...</div>
+    <div class="verdict-text" id="verdictText"></div>
+  </div>
+
+  <!-- 시나리오 -->
+  <div class="card">
+    <div class="card-title">최선/차선 시나리오</div>
+    <div class="scenario-grid">
+      <div class="scenario-item grade2">
+        <div class="scenario-tag grade2">▸ 전부 2등급</div>
+        <div class="scenario-label">남은 과목 전부 2등급 시<br>최종 5등급 내신</div>
+        <div class="scenario-value grade2" id="scenario2">—</div>
+      </div>
+      <div class="scenario-item grade1">
+        <div class="scenario-tag grade1">▸ 전부 1등급</div>
+        <div class="scenario-label">남은 과목 전부 1등급 시<br>최종 5등급 내신</div>
+        <div class="scenario-value grade1" id="scenario1">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 환산표 -->
+  <button class="toggle-btn" onclick="toggleTable()">
+    <span>📋 5등급 ↔ 9등급 전체 환산표 보기</span>
+    <span class="toggle-arrow" id="toggleArrow">▼</span>
+  </button>
+  <div class="table-wrapper" id="tableWrapper">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table id="convTable">
+        <thead>
+          <tr>
+            <th>5등급 평균</th>
+            <th>9등급 환산</th>
+            <th>누적비율 (%)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    진정성입시연구소<br>
+    입력한 값은 저장되지 않습니다.
+  </div>
+</div>
+
+<script>
+const TABLE = [
+  [1.00, 1.15, 0.30], [1.00, 1.21, 0.45], [1.00, 1.26, 0.60], [1.00, 1.45, 1.30],
+  [1.08, 1.59, 1.87], [1.16, 1.78, 2.76], [1.24, 1.98, 3.65], [1.33, 2.14, 4.81],
+  [1.42, 2.32, 5.92], [1.50, 2.45, 7.08], [1.66, 2.72, 9.51], [1.83, 3.03, 13.03],
+  [2.00, 3.35, 17.42], [2.16, 3.60, 21.04], [2.33, 3.91, 26.02], [2.50, 4.20, 31.39],
+  [2.66, 4.46, 36.58], [2.83, 4.73, 42.93], [3.00, 5.03, 49.98], [3.16, 5.28, 55.84],
+  [3.33, 5.58, 62.84], [3.50, 5.86, 69.09], [3.66, 6.08, 74.08], [3.83, 6.37, 79.74],
+  [4.00, 6.67, 84.90], [4.16, 6.93, 88.48], [4.33, 7.20, 91.75], [4.50, 7.48, 94.07],
+  [4.66, 7.71, 95.66], [4.83, 8.00, 97.03], [5.00, 9.00, 100.00],
+];
+
+// 현재 활성 탭
+let activeTab = 'semester';
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  calculate();
+}
+
+function getSubjectCounts() {
+  if (activeTab === 'semester') {
+    const s = parseInt(document.getElementById('completedSemesters').value) || 0;
+    const r = parseInt(document.getElementById('remainingSemesters').value) || 0;
+    const p = parseInt(document.getElementById('subjectsPerSemester').value) || 1;
+    return { comp: s * p, rem: r * p };
+  } else {
+    let comp = 0, rem = 0;
+    document.querySelectorAll('#completedRows .semester-row input').forEach(i => { comp += parseInt(i.value) || 0; });
+    document.querySelectorAll('#remainingRows .semester-row input').forEach(i  => { rem  += parseInt(i.value) || 0; });
+    return { comp, rem };
+  }
+}
+
+function onSemesterInput() {
+  const { comp, rem } = getSubjectCounts();
+  document.getElementById('semComp').textContent = comp;
+  document.getElementById('semRem').textContent = rem;
+  calculate();
+}
+
+function updateSubjectTotals() {
+  let comp = 0, rem = 0;
+  document.querySelectorAll('#completedRows .semester-row input').forEach(i => { comp += parseInt(i.value) || 0; });
+  document.querySelectorAll('#remainingRows .semester-row input').forEach(i  => { rem  += parseInt(i.value) || 0; });
+  document.getElementById('subjComp').textContent = comp;
+  document.getElementById('subjRem').textContent = rem;
+  calculate();
+}
+
+function addSemesterRow(type) {
+  const containerId = type === 'completed' ? 'completedRows' : 'remainingRows';
+  const container = document.getElementById(containerId);
+  const n = container.querySelectorAll('.semester-row').length + 1;
+  const div = document.createElement('div');
+  div.className = 'semester-row';
+  div.innerHTML = `
+    <span class="semester-row-label">학기 ${n}</span>
+    <input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()">
+    <span class="unit">과목</span>
+  `;
+  container.appendChild(div);
+  updateSubjectTotals();
+}
+
+// 5등급 → 9등급 보간
+function to9(grade5) {
+  if (grade5 <= 1) return 1.15;
+  if (grade5 >= 5) return 9;
+  let idx = 0;
+  for (let i = 0; i < TABLE.length; i++) {
+    if (TABLE[i][0] <= grade5) idx = i;
+    else break;
+  }
+  const lo = TABLE[idx], hi = TABLE[Math.min(idx + 1, TABLE.length - 1)];
+  if (lo[0] === hi[0]) return lo[1];
+  return +(lo[1] + (grade5 - lo[0]) * (hi[1] - lo[1]) / (hi[0] - lo[0])).toFixed(2);
+}
+
+function calculate() {
+  const cur = parseFloat(document.getElementById('currentGrade').value) || 0;
+  const tgt = parseFloat(document.getElementById('targetGrade').value) || 0;
+  const { comp, rem } = getSubjectCounts();
+  const total = comp + rem;
+
+  const cur9 = to9(cur);
+  const tgt9 = to9(tgt);
+  const required = rem > 0 ? +((tgt * total - cur * comp) / rem).toFixed(3) : null;
+  const scenario1 = rem > 0 ? +((cur * comp + 1 * rem) / total).toFixed(2) : cur;
+  const scenario2 = rem > 0 ? +((cur * comp + 2 * rem) / total).toFixed(2) : cur;
+
+  setVal('current9Grade', cur9.toFixed(2));
+  setVal('target9Grade', tgt9.toFixed(2));
+  setVal('scenario1', scenario1.toFixed(2));
+  setVal('scenario2', scenario2.toFixed(2));
+  document.getElementById('remainCount').innerHTML = rem + '<span class="result-unit">과목</span>';
+
+  if (required === null || rem === 0) {
+    setVal('requiredAvg', '—');
+    setVerdict('warning', '⚠️', '과목 수를 확인해 주세요', '남은 과목 수를 입력해주세요.');
+    return;
+  }
+
+  setVal('requiredAvg', required.toFixed(2));
+
+  if (required < 1) {
+    setVerdict('impossible', '❌', '현재 목표 등급 달성 불가',
+      `1등급 미만의 평균이 필요해 달성이 불가능합니다.<br>
+       하지만 남은 과목을 <strong>전부 1등급</strong>을 받는 경우<br>
+       최종적으로 <strong>${scenario1.toFixed(2)}등급</strong>에 달성할 수 있으니 힘내세요! 💪`);
+  } else if (required > 5) {
+    setVerdict('impossible', '❌', '현재 목표 등급 달성 불가',
+      `5등급을 초과하는 평균이 필요해 달성이 불가능합니다.<br>목표 등급을 조정해 보세요.`);
+  } else {
+    setVerdict('possible', '✅', '달성 가능!',
+      `남은 <strong>${rem}과목</strong> 동안 평균 <strong>${required.toFixed(2)}등급</strong> 유지하면 목표 달성 가능합니다!`);
+  }
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.classList.remove('pulse');
+  void el.offsetWidth;
+  el.classList.add('pulse');
+}
+
+function setVerdict(type, icon, title, text) {
+  const banner = document.getElementById('verdictBanner');
+  banner.className = 'verdict-banner ' + type;
+  document.getElementById('verdictIcon').textContent = icon;
+  document.getElementById('verdictTitle').textContent = title;
+  document.getElementById('verdictText').innerHTML = text;
+}
+
+function toggleTable() {
+  const wrapper = document.getElementById('tableWrapper');
+  const arrow = document.getElementById('toggleArrow');
+  wrapper.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function renderTable() {
+  const tbody = document.querySelector('#convTable tbody');
+  TABLE.forEach(([g5, g9, pct]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${g5.toFixed(2)}</td><td>${g9.toFixed(2)}</td><td>${pct.toFixed(2)}%</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+['currentGrade','targetGrade'].forEach(id =>
+  document.getElementById(id).addEventListener('input', calculate));
+
+renderTable();
+onSemesterInput();
+updateSubjectTotals();
+calculate();
+</script>
+</body>
+</html>
