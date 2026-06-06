@@ -121,9 +121,14 @@
     padding: 28px;
     margin-bottom: 16px;
     transition: border-color 0.2s;
+    animation: fadeInUp 0.4s ease both;
   }
 
   .card:hover { border-color: rgba(14,159,142,0.4); }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
 
   .card-title {
     font-size: 16px;
@@ -378,6 +383,7 @@
     font-weight: 700;
     color: var(--text);
     transition: all 0.3s ease;
+    animation: countUp 0.25s ease;
   }
 
   .result-value.blue { color: var(--accent); }
@@ -452,6 +458,7 @@
     font-family: 'Space Mono', monospace;
     font-size: 28px;
     font-weight: 700;
+    animation: countUp 0.25s ease;
   }
 
   .scenario-value.grade1 { color: var(--accent); }
@@ -466,6 +473,7 @@
     transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
+    animation: fadeInUp 0.4s ease both;
   }
 
   .verdict-banner::before {
@@ -619,119 +627,209 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .card, .verdict-banner {
-    animation: fadeInUp 0.4s ease both;
-  }
-
-  .card:nth-child(1) { animation-delay: 0.05s; }
-  .card:nth-child(2) { animation-delay: 0.1s; }
-  .card:nth-child(3) { animation-delay: 0.15s; }
-
   @keyframes countUp {
     from { opacity: 0.4; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
   }
 
-  .result-value, .scenario-value {
-    animation: countUp 0.25s ease;
+  /* 접근성: 애니메이션 비활성화 옵션 */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
-  .pulse {
-    animation: countUp 0.25s ease;
+  /* 입력값 추가 마진 */
+  .input-grid-with-margin {
+    margin-bottom: 22px;
+  }
+
+  .semester-totals-with-margin {
+    margin-top: 14px;
+  }
+
+  .card-padding-0 {
+    padding: 0;
+    overflow: hidden;
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <div class="header">
+  <header class="header">
     <div class="brand"><span>✦</span> 진정성입시연구소 <span>✦</span></div>
     <h1>내신 등급 <span>환산 계산기</span></h1>
     <p class="subtitle">5등급제 ↔ 9등급제 자동 환산 · 목표 등급 달성 시뮬레이션</p>
-  </div>
+  </header>
 
   <!-- 입력 -->
   <div class="card">
     <div class="card-title">입력 항목</div>
 
     <!-- 공통: 내신 평균 + 목표 -->
-    <div class="input-grid" style="margin-bottom:22px;">
+    <div class="input-grid input-grid-with-margin">
       <div class="input-group">
-        <label>현재 5등급제 내신 평균</label>
+        <label for="currentGrade">현재 5등급제 내신 평균</label>
         <div class="input-wrapper">
-          <input type="number" id="currentGrade" value="2.1" min="1" max="5" step="0.01">
+          <input 
+            type="number" 
+            id="currentGrade" 
+            value="2.1" 
+            min="1" 
+            max="5" 
+            step="0.01"
+            aria-label="현재 5등급제 내신 평균, 1부터 5까지 입력 가능"
+          >
         </div>
         <span class="input-hint">1.00 ~ 5.00</span>
       </div>
       <div class="input-group">
-        <label>목표 5등급제 내신 평균</label>
+        <label for="targetGrade">목표 5등급제 내신 평균</label>
         <div class="input-wrapper">
-          <input type="number" id="targetGrade" value="1.5" min="1" max="5" step="0.01">
+          <input 
+            type="number" 
+            id="targetGrade" 
+            value="1.5" 
+            min="1" 
+            max="5" 
+            step="0.01"
+            aria-label="목표 5등급제 내신 평균, 1부터 5까지 입력 가능"
+          >
         </div>
         <span class="input-hint">1.00 ~ 5.00</span>
       </div>
     </div>
 
     <!-- 탭 스위처 -->
-    <div class="tab-switcher">
-      <button class="tab-btn active" onclick="switchTab('semester')" id="tab-semester">
+    <div class="tab-switcher" role="tablist" aria-label="입력 방식 선택">
+      <button 
+        class="tab-btn active" 
+        id="tab-semester"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panel-semester"
+      >
         <span>📅</span> 학기 수로 입력
       </button>
-      <button class="tab-btn" onclick="switchTab('subject')" id="tab-subject">
+      <button 
+        class="tab-btn" 
+        id="tab-subject"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-subject"
+      >
         <span>📚</span> 과목 수로 입력 (정밀)
       </button>
     </div>
 
     <!-- 탭 A: 학기 수 입력 -->
-    <div class="tab-panel active" id="panel-semester">
+    <div class="tab-panel active" id="panel-semester" role="tabpanel" aria-labelledby="tab-semester">
       <div class="input-grid">
         <div class="input-group">
-          <label>이수한 학기 수</label>
+          <label for="completedSemesters">이수한 학기 수</label>
           <div class="input-wrapper">
-            <input type="number" id="completedSemesters" value="2" min="1" step="1" oninput="onSemesterInput()">
+            <input 
+              type="number" 
+              id="completedSemesters" 
+              value="2" 
+              min="1" 
+              step="1"
+              aria-label="이수한 학기 수"
+            >
           </div>
           <span class="input-hint">완료된 학기 수</span>
         </div>
         <div class="input-group">
-          <label>남은 학기 수</label>
+          <label for="remainingSemesters">남은 학기 수</label>
           <div class="input-wrapper">
-            <input type="number" id="remainingSemesters" value="3" min="0" step="1" oninput="onSemesterInput()">
+            <input 
+              type="number" 
+              id="remainingSemesters" 
+              value="3" 
+              min="0" 
+              step="1"
+              aria-label="남은 학기 수"
+            >
           </div>
           <span class="input-hint">앞으로 남은 학기 수</span>
         </div>
         <div class="input-group">
-          <label>학기당 과목 수 (동일한 경우)</label>
+          <label for="subjectsPerSemester">학기당 과목 수 (동일한 경우)</label>
           <div class="input-wrapper">
-            <input type="number" id="subjectsPerSemester" value="7" min="1" step="1" oninput="onSemesterInput()">
+            <input 
+              type="number" 
+              id="subjectsPerSemester" 
+              value="7" 
+              min="1" 
+              step="1"
+              aria-label="학기당 과목 수"
+            >
           </div>
           <span class="input-hint">모든 학기가 같을 때</span>
         </div>
       </div>
-      <div class="semester-totals" style="margin-top:14px;">
+      <div class="semester-totals semester-totals-with-margin">
         <span>이수 과목 합계 <b id="semComp">14</b>과목</span>
         <span>남은 과목 합계 <b id="semRem">21</b>과목</span>
       </div>
     </div>
 
     <!-- 탭 B: 학기별 과목 수 직접 입력 -->
-    <div class="tab-panel" id="panel-subject">
-      <div class="semester-section">
-        <div class="semester-label">이수한 학기</div>
+    <div class="tab-panel" id="panel-subject" role="tabpanel" aria-labelledby="tab-subject">
+      <fieldset class="semester-section">
+        <legend class="semester-label">이수한 학기</legend>
         <div class="semester-rows" id="completedRows">
-          <div class="semester-row"><span class="semester-row-label">학기 1</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
-          <div class="semester-row"><span class="semester-row-label">학기 2</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+          <div class="semester-row">
+            <span class="semester-row-label">학기 1</span>
+            <input type="number" value="7" min="1" step="1" aria-label="이수 학기 1 과목 수">
+            <span class="unit">과목</span>
+          </div>
+          <div class="semester-row">
+            <span class="semester-row-label">학기 2</span>
+            <input type="number" value="7" min="1" step="1" aria-label="이수 학기 2 과목 수">
+            <span class="unit">과목</span>
+          </div>
         </div>
-        <button class="add-semester-btn" onclick="addSemesterRow('completed')">+ 이수 학기 추가</button>
-      </div>
-      <div class="semester-section">
-        <div class="semester-label">남은 학기</div>
+        <button 
+          class="add-semester-btn" 
+          id="addCompletedBtn"
+          aria-label="이수 학기 추가"
+        >
+          + 이수 학기 추가
+        </button>
+      </fieldset>
+
+      <fieldset class="semester-section">
+        <legend class="semester-label">남은 학기</legend>
         <div class="semester-rows" id="remainingRows">
-          <div class="semester-row"><span class="semester-row-label">학기 1</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
-          <div class="semester-row"><span class="semester-row-label">학기 2</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
-          <div class="semester-row"><span class="semester-row-label">학기 3</span><input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()"><span class="unit">과목</span></div>
+          <div class="semester-row">
+            <span class="semester-row-label">학기 1</span>
+            <input type="number" value="7" min="1" step="1" aria-label="남은 학기 1 과목 수">
+            <span class="unit">과목</span>
+          </div>
+          <div class="semester-row">
+            <span class="semester-row-label">학기 2</span>
+            <input type="number" value="7" min="1" step="1" aria-label="남은 학기 2 과목 수">
+            <span class="unit">과목</span>
+          </div>
+          <div class="semester-row">
+            <span class="semester-row-label">학기 3</span>
+            <input type="number" value="7" min="1" step="1" aria-label="남은 학기 3 과목 수">
+            <span class="unit">과목</span>
+          </div>
         </div>
-        <button class="add-semester-btn" onclick="addSemesterRow('remaining')">+ 남은 학기 추가</button>
-      </div>
+        <button 
+          class="add-semester-btn" 
+          id="addRemainingBtn"
+          aria-label="남은 학기 추가"
+        >
+          + 남은 학기 추가
+        </button>
+      </fieldset>
+
       <div class="semester-totals">
         <span>이수 과목 합계 <b id="subjComp">14</b>과목</span>
         <span>남은 과목 합계 <b id="subjRem">21</b>과목</span>
@@ -788,12 +886,17 @@
   </div>
 
   <!-- 환산표 -->
-  <button class="toggle-btn" onclick="toggleTable()">
+  <button 
+    class="toggle-btn" 
+    id="toggleTableBtn"
+    aria-expanded="false"
+    aria-controls="tableWrapper"
+  >
     <span>📋 5등급 ↔ 9등급 전체 환산표 보기</span>
     <span class="toggle-arrow" id="toggleArrow">▼</span>
   </button>
   <div class="table-wrapper" id="tableWrapper">
-    <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="card card-padding-0">
       <table id="convTable">
         <thead>
           <tr>
@@ -807,15 +910,17 @@
     </div>
   </div>
 
-  <div class="footer">
+  <footer class="footer">
     진정성입시연구소<br>
     입력한 값은 저장되지 않습니다.
-  </div>
+  </footer>
 </div>
 
 <script>
-const TABLE = [
-[
+// ============================================================================
+// 데이터: 5등급 → 9등급 환산 테이블
+// ============================================================================
+const CONVERSION_TABLE = [
   [1.00, 1.00, 0.30], [1.08, 1.59, 1.87], [1.16, 1.78, 2.76], [1.24, 1.98, 3.65], 
   [1.33, 2.14, 4.81], [1.42, 2.32, 5.92], [1.50, 2.45, 7.08], [1.66, 2.72, 9.51], 
   [1.83, 3.03, 13.03], [2.00, 3.35, 17.42], [2.16, 3.60, 21.04], [2.33, 3.91, 26.02], 
@@ -823,105 +928,337 @@ const TABLE = [
   [3.16, 5.28, 55.84], [3.33, 5.58, 62.84], [3.50, 5.86, 69.09], [3.66, 6.08, 74.08], 
   [3.83, 6.37, 79.74], [4.00, 6.67, 84.90], [4.16, 6.93, 88.48], [4.33, 7.20, 91.75], 
   [4.50, 7.48, 94.07], [4.66, 7.71, 95.66], [4.83, 8.00, 97.03], [5.00, 9.00, 100.00]
-]
 ];
 
-// 현재 활성 탭
+// ============================================================================
+// 상태 관리
+// ============================================================================
 let activeTab = 'semester';
 
+// DOM 캐싱
+const DOM = {
+  // 입력 필드
+  currentGrade: null,
+  targetGrade: null,
+  completedSemesters: null,
+  remainingSemesters: null,
+  subjectsPerSemester: null,
+  
+  // 탭
+  tabBtns: null,
+  tabPanels: null,
+  
+  // 결과
+  current9Grade: null,
+  target9Grade: null,
+  scenario1: null,
+  scenario2: null,
+  remainCount: null,
+  requiredAvg: null,
+  
+  // 판정
+  verdictBanner: null,
+  verdictIcon: null,
+  verdictTitle: null,
+  verdictText: null,
+  
+  // 환산표
+  toggleTableBtn: null,
+  toggleArrow: null,
+  tableWrapper: null,
+  convTable: null,
+  
+  // 학기 표시
+  semComp: null,
+  semRem: null,
+  subjComp: null,
+  subjRem: null,
+  
+  // 버튼
+  addCompletedBtn: null,
+  addRemainingBtn: null,
+  
+  // 행 컨테이너
+  completedRows: null,
+  remainingRows: null
+};
+
+// ============================================================================
+// 초기화
+// ============================================================================
+function initDOM() {
+  DOM.currentGrade = document.getElementById('currentGrade');
+  DOM.targetGrade = document.getElementById('targetGrade');
+  DOM.completedSemesters = document.getElementById('completedSemesters');
+  DOM.remainingSemesters = document.getElementById('remainingSemesters');
+  DOM.subjectsPerSemester = document.getElementById('subjectsPerSemester');
+  
+  DOM.tabBtns = document.querySelectorAll('.tab-btn');
+  DOM.tabPanels = document.querySelectorAll('.tab-panel');
+  
+  DOM.current9Grade = document.getElementById('current9Grade');
+  DOM.target9Grade = document.getElementById('target9Grade');
+  DOM.scenario1 = document.getElementById('scenario1');
+  DOM.scenario2 = document.getElementById('scenario2');
+  DOM.remainCount = document.getElementById('remainCount');
+  DOM.requiredAvg = document.getElementById('requiredAvg');
+  
+  DOM.verdictBanner = document.getElementById('verdictBanner');
+  DOM.verdictIcon = document.getElementById('verdictIcon');
+  DOM.verdictTitle = document.getElementById('verdictTitle');
+  DOM.verdictText = document.getElementById('verdictText');
+  
+  DOM.toggleTableBtn = document.getElementById('toggleTableBtn');
+  DOM.toggleArrow = document.getElementById('toggleArrow');
+  DOM.tableWrapper = document.getElementById('tableWrapper');
+  DOM.convTable = document.getElementById('convTable');
+  
+  DOM.semComp = document.getElementById('semComp');
+  DOM.semRem = document.getElementById('semRem');
+  DOM.subjComp = document.getElementById('subjComp');
+  DOM.subjRem = document.getElementById('subjRem');
+  
+  DOM.addCompletedBtn = document.getElementById('addCompletedBtn');
+  DOM.addRemainingBtn = document.getElementById('addRemainingBtn');
+  
+  DOM.completedRows = document.getElementById('completedRows');
+  DOM.remainingRows = document.getElementById('remainingRows');
+}
+
+// ============================================================================
+// 이벤트 리스너 설정
+// ============================================================================
+function attachEventListeners() {
+  // 입력 필드
+  DOM.currentGrade.addEventListener('input', calculate);
+  DOM.targetGrade.addEventListener('input', calculate);
+  DOM.completedSemesters.addEventListener('input', onSemesterInput);
+  DOM.remainingSemesters.addEventListener('input', onSemesterInput);
+  DOM.subjectsPerSemester.addEventListener('input', onSemesterInput);
+  
+  // 탭
+  DOM.tabBtns.forEach((btn, idx) => {
+    btn.addEventListener('click', () => {
+      const tabs = ['semester', 'subject'];
+      if (idx < tabs.length) switchTab(tabs[idx]);
+    });
+  });
+  
+  // 버튼
+  DOM.addCompletedBtn.addEventListener('click', () => addSemesterRow('completed'));
+  DOM.addRemainingBtn.addEventListener('click', () => addSemesterRow('remaining'));
+  DOM.toggleTableBtn.addEventListener('click', toggleTable);
+  
+  // 학기 입력 컨테이너 위임 이벤트
+  DOM.completedRows.addEventListener('input', updateSubjectTotals);
+  DOM.remainingRows.addEventListener('input', updateSubjectTotals);
+}
+
+// ============================================================================
+// 입력 값 검증 및 범위 제한
+// ============================================================================
+function validateGradeInput(value) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return 0;
+  return Math.max(1, Math.min(5, num));
+}
+
+function validateIntInput(value, min = 1, max = null) {
+  const num = parseInt(value) || 0;
+  const result = Math.max(min, num);
+  return max !== null ? Math.min(max, result) : result;
+}
+
+// ============================================================================
+// 탭 관리
+// ============================================================================
 function switchTab(tab) {
+  if (activeTab === tab) return;
   activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  document.getElementById('panel-' + tab).classList.add('active');
+  
+  DOM.tabBtns.forEach((btn, idx) => {
+    const tabs = ['semester', 'subject'];
+    if (idx < tabs.length) {
+      btn.classList.toggle('active', tabs[idx] === tab);
+      btn.setAttribute('aria-selected', tabs[idx] === tab);
+    }
+  });
+  
+  DOM.tabPanels.forEach((panel, idx) => {
+    const tabs = ['semester', 'subject'];
+    if (idx < tabs.length) {
+      panel.classList.toggle('active', tabs[idx] === tab);
+    }
+  });
+  
   calculate();
 }
 
+// ============================================================================
+// 과목 수 계산
+// ============================================================================
 function getSubjectCounts() {
   if (activeTab === 'semester') {
-    const s = parseInt(document.getElementById('completedSemesters').value) || 0;
-    const r = parseInt(document.getElementById('remainingSemesters').value) || 0;
-    const p = parseInt(document.getElementById('subjectsPerSemester').value) || 1;
-    return { comp: s * p, rem: r * p };
+    const completed = validateIntInput(DOM.completedSemesters.value, 1);
+    const remaining = validateIntInput(DOM.remainingSemesters.value, 0);
+    const perSemester = validateIntInput(DOM.subjectsPerSemester.value, 1);
+    return { 
+      comp: completed * perSemester, 
+      rem: remaining * perSemester 
+    };
   } else {
     let comp = 0, rem = 0;
-    document.querySelectorAll('#completedRows .semester-row input').forEach(i => { comp += parseInt(i.value) || 0; });
-    document.querySelectorAll('#remainingRows .semester-row input').forEach(i  => { rem  += parseInt(i.value) || 0; });
+    DOM.completedRows.querySelectorAll('input[type="number"]').forEach(input => {
+      comp += validateIntInput(input.value, 1);
+    });
+    DOM.remainingRows.querySelectorAll('input[type="number"]').forEach(input => {
+      rem += validateIntInput(input.value, 1);
+    });
     return { comp, rem };
   }
 }
 
+// ============================================================================
+// 학기 입력 업데이트
+// ============================================================================
 function onSemesterInput() {
   const { comp, rem } = getSubjectCounts();
-  document.getElementById('semComp').textContent = comp;
-  document.getElementById('semRem').textContent = rem;
+  DOM.semComp.textContent = comp;
+  DOM.semRem.textContent = rem;
   calculate();
 }
 
+// ============================================================================
+// 과목 입력 업데이트
+// ============================================================================
 function updateSubjectTotals() {
-  let comp = 0, rem = 0;
-  document.querySelectorAll('#completedRows .semester-row input').forEach(i => { comp += parseInt(i.value) || 0; });
-  document.querySelectorAll('#remainingRows .semester-row input').forEach(i  => { rem  += parseInt(i.value) || 0; });
-  document.getElementById('subjComp').textContent = comp;
-  document.getElementById('subjRem').textContent = rem;
+  const { comp, rem } = getSubjectCounts();
+  DOM.subjComp.textContent = comp;
+  DOM.subjRem.textContent = rem;
   calculate();
 }
 
+// ============================================================================
+// 학기 행 추가
+// ============================================================================
 function addSemesterRow(type) {
-  const containerId = type === 'completed' ? 'completedRows' : 'remainingRows';
-  const container = document.getElementById(containerId);
-  const n = container.querySelectorAll('.semester-row').length + 1;
-  const div = document.createElement('div');
-  div.className = 'semester-row';
-  div.innerHTML = `
-    <span class="semester-row-label">학기 ${n}</span>
-    <input type="number" value="7" min="1" step="1" oninput="updateSubjectTotals()">
+  const container = type === 'completed' ? DOM.completedRows : DOM.remainingRows;
+  const currentCount = container.querySelectorAll('.semester-row').length + 1;
+  
+  const row = document.createElement('div');
+  row.className = 'semester-row';
+  row.innerHTML = `
+    <span class="semester-row-label">학기 ${currentCount}</span>
+    <input type="number" value="7" min="1" step="1" aria-label="${type === 'completed' ? '이수' : '남은'} 학기 ${currentCount} 과목 수">
     <span class="unit">과목</span>
   `;
-  container.appendChild(div);
+  
+  container.appendChild(row);
   updateSubjectTotals();
 }
 
+// ============================================================================
 // 5등급 → 9등급 보간
+// ============================================================================
 function to9(grade5) {
-  if (grade5 <= 1) return 1.15;
-  if (grade5 >= 5) return 9;
-  let idx = 0;
-  for (let i = 0; i < TABLE.length; i++) {
-    if (TABLE[i][0] <= grade5) idx = i;
-    else break;
+  const validated = validateGradeInput(grade5);
+  
+  if (validated <= 1) return 1.00;
+  if (validated >= 5) return 9.00;
+  
+  // 테이블에서 해당 범위 찾기
+  let lowerIdx = 0;
+  for (let i = 0; i < CONVERSION_TABLE.length; i++) {
+    if (CONVERSION_TABLE[i][0] <= validated) {
+      lowerIdx = i;
+    } else {
+      break;
+    }
   }
-  const lo = TABLE[idx], hi = TABLE[Math.min(idx + 1, TABLE.length - 1)];
-  if (lo[0] === hi[0]) return lo[1];
-  return +(lo[1] + (grade5 - lo[0]) * (hi[1] - lo[1]) / (hi[0] - lo[0])).toFixed(2);
+  
+  const lowerRow = CONVERSION_TABLE[lowerIdx];
+  const upperRow = CONVERSION_TABLE[Math.min(lowerIdx + 1, CONVERSION_TABLE.length - 1)];
+  
+  // 선형 보간
+  if (lowerRow[0] === upperRow[0]) {
+    return lowerRow[1];
+  }
+  
+  const ratio = (validated - lowerRow[0]) / (upperRow[0] - lowerRow[0]);
+  const interpolated = lowerRow[1] + ratio * (upperRow[1] - lowerRow[1]);
+  
+  return parseFloat(interpolated.toFixed(2));
 }
 
+// ============================================================================
+// 계산 및 업데이트
+// ============================================================================
 function calculate() {
-  const cur = parseFloat(document.getElementById('currentGrade').value) || 0;
-  const tgt = parseFloat(document.getElementById('targetGrade').value) || 0;
+  const cur = validateGradeInput(DOM.currentGrade.value);
+  const tgt = validateGradeInput(DOM.targetGrade.value);
   const { comp, rem } = getSubjectCounts();
   const total = comp + rem;
 
   const cur9 = to9(cur);
   const tgt9 = to9(tgt);
-  const required = rem > 0 ? +((tgt * total - cur * comp) / rem).toFixed(3) : null;
-  const scenario1 = rem > 0 ? +((cur * comp + 1 * rem) / total).toFixed(2) : cur;
-  const scenario2 = rem > 0 ? +((cur * comp + 2 * rem) / total).toFixed(2) : cur;
+  
+  // 필요 평균 계산
+  let required = null;
+  if (rem > 0 && total > 0) {
+    required = (tgt * total - cur * comp) / rem;
+  }
+  
+  // 시나리오
+  const scenario1 = rem > 0 ? (cur * comp + 1 * rem) / total : cur;
+  const scenario2 = rem > 0 ? (cur * comp + 2 * rem) / total : cur;
 
-  setVal('current9Grade', cur9.toFixed(2));
-  setVal('target9Grade', tgt9.toFixed(2));
-  setVal('scenario1', scenario1.toFixed(2));
-  setVal('scenario2', scenario2.toFixed(2));
-  document.getElementById('remainCount').innerHTML = rem + '<span class="result-unit">과목</span>';
+  // UI 업데이트
+  updateResultUI(cur9, tgt9, scenario1, scenario2, rem, required);
+  updateVerdict(required, rem, scenario1);
+}
 
+// ============================================================================
+// 결과 UI 업데이트
+// ============================================================================
+function updateResultUI(cur9, tgt9, scenario1, scenario2, rem, required) {
+  setResultValue('current9Grade', cur9.toFixed(2));
+  setResultValue('target9Grade', tgt9.toFixed(2));
+  setResultValue('scenario1', scenario1.toFixed(2));
+  setResultValue('scenario2', scenario2.toFixed(2));
+  
+  DOM.remainCount.innerHTML = rem + '<span class="result-unit">과목</span>';
+  
   if (required === null || rem === 0) {
-    setVal('requiredAvg', '—');
+    setResultValue('requiredAvg', '—');
+  } else {
+    setResultValue('requiredAvg', required.toFixed(2));
+  }
+}
+
+// ============================================================================
+// 결과 값 설정 (애니메이션 포함)
+// ============================================================================
+function setResultValue(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  el.textContent = val;
+  // 리플로우 강제 (애니메이션 재시작)
+  void el.offsetWidth;
+  el.classList.add('pulse');
+  el.addEventListener('animationend', () => {
+    el.classList.remove('pulse');
+  }, { once: true });
+}
+
+// ============================================================================
+// 판정 업데이트
+// ============================================================================
+function updateVerdict(required, rem, scenario1) {
+  if (required === null || rem === 0) {
     setVerdict('warning', '⚠️', '과목 수를 확인해 주세요', '남은 과목 수를 입력해주세요.');
     return;
   }
-
-  setVal('requiredAvg', required.toFixed(2));
 
   if (required < 1) {
     setVerdict('impossible', '❌', '현재 목표 등급 달성 불가',
@@ -937,50 +1274,57 @@ function calculate() {
   }
 }
 
-function setVal(id, val) {
-  const el = document.getElementById(id);
-  el.textContent = val;
-  el.classList.remove('pulse');
-  void el.offsetWidth;
-  el.classList.add('pulse');
-}
-
+// ============================================================================
+// 판정 배너 설정
+// ============================================================================
 function setVerdict(type, icon, title, text) {
-  const banner = document.getElementById('verdictBanner');
-  banner.className = 'verdict-banner ' + type;
-  document.getElementById('verdictIcon').textContent = icon;
-  document.getElementById('verdictTitle').textContent = title;
-  document.getElementById('verdictText').innerHTML = text;
+  DOM.verdictBanner.className = 'verdict-banner ' + type;
+  DOM.verdictIcon.textContent = icon;
+  DOM.verdictTitle.textContent = title;
+  DOM.verdictText.innerHTML = text;
 }
 
+// ============================================================================
+// 환산표 토글
+// ============================================================================
 function toggleTable() {
-  const wrapper = document.getElementById('tableWrapper');
-  const arrow = document.getElementById('toggleArrow');
-  wrapper.classList.toggle('open');
-  arrow.classList.toggle('open');
+  const isOpen = DOM.tableWrapper.classList.toggle('open');
+  DOM.toggleArrow.classList.toggle('open');
+  DOM.toggleTableBtn.setAttribute('aria-expanded', isOpen);
 }
 
+// ============================================================================
+// 환산표 렌더링
+// ============================================================================
 function renderTable() {
-  const tbody = document.querySelector('#convTable tbody');
-  TABLE.forEach(([g5, g9, pct]) => {
+  const tbody = DOM.convTable.querySelector('tbody');
+  CONVERSION_TABLE.forEach(([g5, g9, pct]) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${g5.toFixed(2)}</td><td>${g9.toFixed(2)}</td><td>${pct.toFixed(2)}%</td>`;
+    tr.innerHTML = `
+      <td>${g5.toFixed(2)}</td>
+      <td>${g9.toFixed(2)}</td>
+      <td>${pct.toFixed(2)}%</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-['currentGrade','targetGrade'].forEach(id =>
-  document.getElementById(id).addEventListener('input', calculate));
+// ============================================================================
+// 앱 초기화
+// ============================================================================
+function init() {
+  initDOM();
+  attachEventListeners();
+  renderTable();
+  
+  // 초기 계산
+  onSemesterInput();
+  updateSubjectTotals();
+  calculate();
+}
 
-renderTable();
-onSemesterInput();
-updateSubjectTotals();
-calculate();
-</script>
-<script>
-  document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-  document.addEventListener('selectstart', function(e) { e.preventDefault(); return false; });
-  document.addEventListener('dragstart', function(e) { e.preventDefault(); return false; });
+// 페이지 로드 후 초기화
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
